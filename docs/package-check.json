@@ -1,0 +1,17 @@
+{
+  "consumer": ".tmp/consumer-9OYyb9",
+  "archive": "pi-codemode-expo-0.1.0.tgz",
+  "native": "expo-quickjs-0.1.0.tgz",
+  "checks": [
+    "public package type compatibility with actual native facade and Pi Durable",
+    "packed JS import with WebAssembly unavailable",
+    "real createCodemodeExtension runtime smoke",
+    "mobile JS graph has no Node/Pi/WASM imports",
+    "MIT notices/provenance present",
+    "actual Pi Durable mobile graph via Metro helper rejects Node/WASM imports",
+    "full adapter/native/Harness/SQLite suite rerun against installed compiled artifact"
+  ],
+  "limitations": [
+    "No Expo native build/device run in this check; Expo peer dependencies intentionally not installed."
+  ]
+}

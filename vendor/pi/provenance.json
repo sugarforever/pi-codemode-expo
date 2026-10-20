@@ -1,0 +1,12 @@
+{
+  "package": "@earendil-works/pi-codemode",
+  "version": "1.3.0",
+  "source": "https://github.com/earendil-works/pi/tree/main/packages/codemode",
+  "sha256": {
+    "runtime/execution.js": "38d8b4965c7a3ffc8526aa83c03224ae18c06fe7359dde4171563bbb9af99ac9",
+    "runtime/protocol.js": "7adbeb01f54eb65a6bec783b5ea8a1ad2bd803b1df79769ce7aa2360b620cb6b",
+    "runtime/prelude-source.js": "2fc2886529c0a7e8a7c9ac16b7c96fb2bbf8d2dce562801c5a09d723a57ea6ca",
+    "identifier.js": "079ed84f0ff010a0208aa0d94ccdd18cc60ba93aa54c3dbd9995ec80b32eaa1b"
+  },
+  "changes": "execution.js: relative identifier import; join pending launcher admission before native stop/result settlement; surface stop/join rejection as sandbox error. All copied files: sourceMappingURL comments removed."
+}

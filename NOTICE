@@ -1,0 +1,14 @@
+pi-codemode-expo is MIT licensed.
+
+src/vendor/pi contains JavaScript copied from the installed
+@earendil-works/pi-codemode npm distribution, version 1.3.0.
+Copyright (c) 2025 Mario Zechner. MIT license: vendor/pi/LICENSE.
+Original repository: https://github.com/earendil-works/pi
+Source file SHA-256 checksums and exact local changes: vendor/pi/provenance.json.
+The copied prelude/protocol/identifier are unmodified except removal of source-map
+comments. The host execution implementation has a relative import adjustment and
+waits for pending native admission before stopping/settling, to join native workers. Stop/join rejection becomes a sandbox failure.
+
+The vendored host implementation is exposed through Pi's public TypeScript base
+interface. It is not an instanceof the upstream runtime class. No unexported Pi
+runtime path, WASM launcher, or Node builtin is imported by the mobile entry point.

@@ -1,0 +1,22 @@
+# Native channel v1 (contract)
+
+The generic package exports `createQuickJS(transport?)`, `start(options, onEvent)`, `deliver(runId, message)`, `stop(runId)`, `close()` and convenience `execute`. No Pi dependency. Hermes remains the application engine.
+
+`start` options: `{runId: string, bootstrap: string, data?: JsonValue, limits?: Partial<Limits>}`. Bootstrap is a complete global JS program, not a function body. It installs `globalThis.__receive = message => ...`. Native installs `globalThis.__startData` as parsed JSON before evaluating bootstrap. There are no module imports or ambient host APIs.
+
+VM-only primitive functions:
+- `__emit(json: string)`: emit a bounded JSON message.
+- `__request(id: positive safe integer, json: string)`: emit a call and register its ID as pending. At most `maxHostCalls` IDs; IDs cannot be reused in one run.
+- `__finish(json: string)`: emit final JSON value as a terminal success; stops VM after current evaluation/job drain boundary. Additional messages are ignored. For Pi the final value can be its exact `done` envelope.
+
+Host `deliver(runId, {id: number, ...fields})` queues a bounded JSON object; rejects unknown, duplicate, stale IDs. It removes the pending ID at acceptance; invokes `__receive(parsedMessage)` only on the owner thread. Bootstrap owns payload interpretation, promise resolution, seq ordering, virtual clock and error properties. Cancellation atomically interrupts bytecode and is checked between jobs. Native monotonic deadline applies even while awaiting host responses.
+
+Events are `{runId, type: 'message', json: string}` or `{runId,type:'terminal',status:'ok'|'script-error'|'timeout'|'aborted'|'resource-limit'|'native-error',json?:string,error?:string}`. One terminal event, after VM disposal. Per-run order is stable. `__finish`'s JSON is the terminal `json`, not also a message. `start` resolves on native admission, not execution completion. Callbacks never reenter the VM. `stop` resolves once the run has terminated and been joined; repeated stop is safe. Run IDs cannot be reused during a facade's lifetime. Close is terminal for the facade.
+
+For Pi 1.3.0: vendor its prelude in the adapter; bridge call/global invokes `__request(id, JSON.stringify(exactCallMessage))`; output/started/idle uses `__emit`; done uses `__finish`. The adapter bootstrap installs `__receive`, invokes prelude settle and drains promises naturally. The bootstrap installs `globalThis.__drain = () => boolean`. Native captures `__receive` and `__drain` after bootstrap evaluation and deletes those globals before the first job drain. It invokes the retained drain hook after the initial and each delivered-message job drain. True requests another drain/hook pass; false waits for messages. Interrupt/deadline is checked each pass. The adapter emits idle with its own seq/issued counters and can apply one next buffered result per pass. Bootstrap must capture/delete all primitive bridge globals and defer user code to the first hook so scripts cannot forge bridge messages. For out-of-order deterministic deliveries the bootstrap buffers seq and applies only the next result; native acceptance still validates IDs. Fingerprints must include engine `quickjs-2025-09-13`, protocol `expo-quickjs-channel-1`, bootstrap/prelude hash, effective limits and deterministic settings, and be checked by the host before any replay host effects.
+
+Deterministic UTC Date/random is adapter bootstrap responsibility: replace Date with a virtual UTC implementation, seed Math.random, remove WeakRef/FinalizationRegistry, and update time only when ordered messages apply. Generic core does not claim native local-time Date is UTC. A bootstrap may not import Pi at runtime.
+
+Defaults: timeoutMs 10000, memoryBytes 33554432, stackBytes 262144, outputBytes 1048576, messageBytes 1048576, maxHostCalls 32. At most two live runs. Bytes mean UTF-8. Output budget conservatively counts all emitted/request/final JSON, not only user text. Bootstrap and data each obey messageBytes. Queued inbound bytes are bounded by messageBytes * maxHostCalls. Exceeding output or pending-call budgets terminates the run even if script catches the throw.
+
+Native binding methods: `start(runId, bootstrap, dataJson, limitsJson)`, `deliver(runId,messageJson)`, `stop(runId)`, `close()`; event name `onEvent` carries above event object. Binding must serialize callbacks onto the platform event dispatcher, never call Hermes directly from the worker. Native stop/close must execute off the JS thread.
