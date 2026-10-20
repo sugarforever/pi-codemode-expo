@@ -87,10 +87,9 @@ requested version appears and verify its `dist.integrity` against the CI artifac
 A newly created trusted-publisher connection must make its **first successful
 CI publication within two days**, or npm expires it. An initial release workflow
 that skips an identical manually published version does not validate the connection.
-The adapter connection was created on 2026-10-20; publish a new version through
-Actions within that window, or recreate the connection when ready for that release.
-After the first successful automated publication, this initial setup condition is
-satisfied. See npm's [configuration expiry policy](https://docs.npmjs.com/trusted-publishers/#trusted-publisher-configuration-expiry).
+The adapter connection was created on 2026-10-20. Its first automated publication,
+`0.2.0`, was accepted through GitHub Actions on the same day with signed provenance,
+satisfying this initial setup condition. See the [successful publication run](https://github.com/sugarforever/pi-codemode-expo/actions/runs/39459724336). See npm's [configuration expiry policy](https://docs.npmjs.com/trusted-publishers/#trusted-publisher-configuration-expiry).
 
 
 The pinned native engine revision's host test transport has a shutdown EPIPE race.
