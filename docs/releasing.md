@@ -97,3 +97,17 @@ The pinned native engine revision's host test transport has a shutdown EPIPE rac
 CI installs a versioned host-only fixture and runs its regression before native
 facade tests. Native VM and published package source are unchanged. Remove this
 fixture when updating to a native revision containing the upstream test fix.
+
+## Recovering a release after a workflow fix
+
+If a workflow bug prevents publication, fix the workflow on `main` without moving
+the published version tag. Retry using the current workflow against the existing
+GitHub release:
+
+```sh
+gh workflow run publish.yml --ref main -f release-tag=v0.2.0
+```
+
+This rebuilds and tests the tagged source, reads the existing release's prerelease
+status, validates its package version, and publishes the verified archive. The
+same integrity guard prevents overwriting an existing version with different bytes.

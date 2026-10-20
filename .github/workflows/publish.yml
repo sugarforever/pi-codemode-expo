@@ -2,6 +2,12 @@ name: Publish to npmjs
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: Existing release tag to verify and publish
+        required: true
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -10,6 +16,8 @@ concurrency:
 jobs:
   verify:
     uses: ./.github/workflows/verify.yml
+    with:
+      source-ref: ${{ inputs.release-tag || github.ref }}
   publish:
     needs: verify
     runs-on: ubuntu-latest
@@ -22,16 +30,30 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          ref: ${{ inputs.release-tag || github.ref }}
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - run: npm install --global npm@11
+      - name: Read published GitHub release metadata
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        run: |
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease > "$RUNNER_TEMP/release.json"
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const release = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/release.json"));
+            if (release.isDraft) throw new Error("Publish the GitHub release first");
+            fs.appendFileSync(process.env.GITHUB_ENV, "RELEASE_PRERELEASE=" + release.isPrerelease + "\n");
+          '
       - name: Validate release tag and npm channel
         id: release
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+          RELEASE_TAG: ${{ inputs.release-tag || github.event.release.tag_name }}
+          RELEASE_PRERELEASE: ${{ env.RELEASE_PRERELEASE || github.event.release.prerelease }}
         run: node scripts/validate-release.mjs
       - name: Require native peer to be available on npm
         run: npm view expo-quickjs@0.1.0 version --registry=https://registry.npmjs.org
@@ -48,4 +70,4 @@ jobs:
           PUBLISH_TAG: ${{ steps.release.outputs.publish-tag }}
           # Optional first-publish fallback. Prefer npm trusted publishing (OIDC).
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish release-package/*.tgz --access public --provenance --tag "$PUBLISH_TAG"
+        run: npm publish ./release-package/*.tgz --access public --provenance --tag "$PUBLISH_TAG"
