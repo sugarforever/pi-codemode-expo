@@ -30,7 +30,8 @@
 
 1. Implement changes and update release notes. If changing native compatibility,
    first release the native package, update `peerDependencies.expo-quickjs`, and
-   update the native checkout SHA and archive version in `verify.yml`. Commit the
+   update the native checkout SHA and archive version in `verify.yml` and the
+   native-peer version check in `publish.yml`. Commit the
    corresponding lockfile changes. Keep deterministic identity/protocol policy
    compatible or deliberately change the fingerprint so old runs refuse replay.
 2. Bump the adapter version without creating a tag yet:
@@ -90,3 +91,9 @@ The adapter connection was created on 2026-10-20; publish a new version through
 Actions within that window, or recreate the connection when ready for that release.
 After the first successful automated publication, this initial setup condition is
 satisfied. See npm's [configuration expiry policy](https://docs.npmjs.com/trusted-publishers/#trusted-publisher-configuration-expiry).
+
+
+The pinned native engine revision's host test transport has a shutdown EPIPE race.
+CI installs a versioned host-only fixture and runs its regression before native
+facade tests. Native VM and published package source are unchanged. Remove this
+fixture when updating to a native revision containing the upstream test fix.

@@ -35,6 +35,11 @@ jobs:
           cmake -S .ci/expo-quickjs -B .ci/expo-quickjs/build -DCMAKE_BUILD_TYPE=Release
           cmake --build .ci/expo-quickjs/build --parallel 2
           ctest --test-dir .ci/expo-quickjs/build --output-on-failure
+      - name: Harden the pinned host test transport shutdown race
+        run: |
+          cp "$GITHUB_WORKSPACE/scripts/fixtures/native-transport.ts" tests/native-transport.ts
+          node --test "$GITHUB_WORKSPACE/scripts/fixtures/native-transport.test.mjs"
+        working-directory: .ci/expo-quickjs
       - run: npm test
         working-directory: .ci/expo-quickjs
       - run: node --test scripts/check-publish-state.test.mjs
