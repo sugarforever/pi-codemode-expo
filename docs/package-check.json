@@ -1,5 +1,5 @@
 {
-  "consumer": ".tmp/consumer-kFwK8h",
+  "consumer": ".tmp/consumer-FTXxzt",
   "archive": "pi-codemode-expo-0.1.0.tgz",
   "native": "expo-quickjs-0.1.0.tgz",
   "checks": [
@@ -14,5 +14,6 @@
   "limitations": [
     "No Expo native build/device run in this check; Expo peer dependencies intentionally not installed."
   ],
-  "nativeSha256": "893dccb91465752a45c70b45cc4e21fa16b41648143a7f4183bd34c10940651c"
+  "nativeSha256": "893dccb91465752a45c70b45cc4e21fa16b41648143a7f4183bd34c10940651c",
+  "archiveSha256": "ce653add4a426a3c74e9e6a1ae9f744a4872705fb19d84d773d75ac5fe556e61"
 }

@@ -2,7 +2,7 @@
 
 MIT native Expo QuickJS adapter for **Pi Codemode / Pi Durable 1.3.0**. Hermes stays the application runtime; scripts run on dedicated native QuickJS workers through `expo-quickjs`. No WASM or Node imports occur in this package's mobile runtime graph.
 
-Local initial implementation; no npm publication or remote repository has been created. Native host conformance and real SQLite restart tests pass. An actual iOS Hermes simulator smoke passes for tools/store and deterministic start. Android execution and native-mobile SQLite replay remain unverified. See [verification](docs/verification.md).
+Experimental 0.1.0 implementation; source is hosted on GitHub. npm publication is release-driven and requires the native peer first. Native host conformance and real SQLite restart tests pass. An actual iOS Hermes simulator smoke passes for tools/store and deterministic start. Android execution and native-mobile SQLite replay remain unverified. See [verification](docs/verification.md).
 
 ## Install and use
 
@@ -84,3 +84,30 @@ node scripts/check-package.mjs /absolute/path/to/expo-quickjs-0.1.0.tgz
 ```
 
 `npm test` includes real native C++ QuickJS and Pi Durable/SQLite tests and requires the native runner. Protocol tests use controlled transports and a Node VM double; they do not establish native engine behavior. Native loop tests use child processes with an external kill watchdog. The sibling repository is read by tests only; packed consumers need no sibling source. See [Expo example](examples/expo/README.md) and [channel contract](docs/native-channel.md).
+
+
+## Releases
+
+GitHub Actions runs native QuickJS, adapter, SQLite restart, and packed-consumer
+checks against a pinned `sugarforever/expo-quickjs` commit. A published GitHub
+release triggers `.github/workflows/publish.yml`; its tag must equal
+`v<package.json version>`. GitHub prereleases and semver prereleases publish to
+npm's `next` channel; ordinary releases publish to `latest`. No publication occurs
+on a normal push.
+
+This is ready for an **experimental/iOS-validated release**, not a claim of full
+Android/mobile SQLite acceptance. Publish `expo-quickjs@0.1.0` first; the adapter
+workflow checks that it exists on npm. For the initial release, use a GitHub
+prerelease named `v0.1.0` after the prerequisites below are configured.
+
+Configure npm trusted publishing for package `pi-codemode-expo`: GitHub owner
+`sugarforever`, repository `pi-codemode-expo`, workflow filename `publish.yml`,
+environment `npm`, and allow publishing. The workflow uses OIDC and provenance.
+If npm requires an authenticated first publication before trusted-publisher setup,
+set a package-scoped granular `NPM_TOKEN` repository secret for that first run;
+remove it after trusted publishing is configured. Do not commit tokens.
+
+See [npm's trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/)
+for the account-side setup. Package version changes must be committed before
+creating the matching GitHub release. The `npm` GitHub environment can have
+maintainer-configured release protection rules.

@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, writeFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join, resolve, relative, basename } from "node:path";
@@ -163,6 +164,8 @@ const report = {
   consumer: relative(root, consumer),
   archive: basename(archive),
   native: basename(native),
+  nativeSha256: createHash("sha256").update(await readFile(resolve(native))).digest("hex"),
+  archiveSha256: createHash("sha256").update(await readFile(archive)).digest("hex"),
   checks: [
     "public package type compatibility with actual native facade and Pi Durable",
     "packed JS import with WebAssembly unavailable",

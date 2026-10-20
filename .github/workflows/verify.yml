@@ -1,18 +1,53 @@
 name: Verify adapter package
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
 jobs:
-  protocol-and-types:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPO_QUICKJS_RUNNER: ${{ github.workspace }}/.ci/expo-quickjs/build/channel_runner
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Checkout tested native engine revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: sugarforever/expo-quickjs
+          ref: 85b5a08d9ecfd088b5c16a6ac00c7eccf5777171
+          path: .ci/expo-quickjs
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm run test:protocol
+      - run: npm ci --ignore-scripts --legacy-peer-deps
+        working-directory: .ci/expo-quickjs
+      - name: Build native QuickJS conformance runner
+        run: |
+          cmake -S .ci/expo-quickjs -B .ci/expo-quickjs/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build .ci/expo-quickjs/build --parallel 2
+          ctest --test-dir .ci/expo-quickjs/build --output-on-failure
+      - run: npm test
+        working-directory: .ci/expo-quickjs
+      - run: npm run test:release
+      - run: npm test
       - run: npm run typecheck
-      - run: npm run build
-      - run: npm pack
-# Full native/SQLite tests additionally require a built expo-quickjs channel_runner.
-# See README; no nonexistent remote repository or binary download is assumed here.
+      - name: Pack native peer
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+        working-directory: .ci/expo-quickjs
+      - name: Check clean packed consumer and rerun native/SQLite tests
+        run: node scripts/check-package.mjs "$RUNNER_TEMP/expo-quickjs-0.1.0.tgz"
+      - name: Upload verified npm package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-package
+          path: pi-codemode-expo-*.tgz
+          if-no-files-found: error
