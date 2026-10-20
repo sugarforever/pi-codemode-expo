@@ -39,7 +39,11 @@ jobs:
         with:
           name: npm-package
           path: release-package
+      - name: Check for an identical existing publication
+        id: state
+        run: node scripts/check-publish-state.mjs release-package
       - name: Publish verified artifact with provenance
+        if: steps.state.outputs.should-publish == 'true'
         env:
           PUBLISH_TAG: ${{ steps.release.outputs.publish-tag }}
           # Optional first-publish fallback. Prefer npm trusted publishing (OIDC).

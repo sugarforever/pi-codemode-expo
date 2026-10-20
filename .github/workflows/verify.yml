@@ -37,6 +37,7 @@ jobs:
           ctest --test-dir .ci/expo-quickjs/build --output-on-failure
       - run: npm test
         working-directory: .ci/expo-quickjs
+      - run: node --test scripts/check-publish-state.test.mjs
       - run: npm run test:release
       - run: npm test
       - run: npm run typecheck
