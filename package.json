@@ -1,6 +1,6 @@
 {
   "name": "pi-codemode-expo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Native Expo QuickJS adapter for Pi Codemode and Pi Durable 1.3.0",
   "type": "module",
   "license": "MIT",

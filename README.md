@@ -2,7 +2,7 @@
 
 MIT native Expo QuickJS adapter for **Pi Codemode / Pi Durable 1.3.0**. Hermes stays the application runtime; scripts run on dedicated native QuickJS workers through `expo-quickjs`. No WASM or Node imports occur in this package's mobile runtime graph.
 
-Experimental 0.1.0 implementation; source is hosted on GitHub. npm publication is release-driven and requires the native peer first. Native host conformance and real SQLite restart tests pass. An actual iOS Hermes simulator smoke passes for tools/store and deterministic start. Android execution and native-mobile SQLite replay remain unverified. See [verification](docs/verification.md).
+Experimental 0.2.0 implementation; source is hosted on GitHub. npm publication is release-driven and requires the native peer first. Native host conformance and real SQLite restart tests pass. An actual iOS Hermes simulator smoke passes for tools/store and deterministic start. Android execution and native-mobile SQLite replay remain unverified. See [verification](docs/verification.md).
 
 ## Install and use
 
@@ -47,6 +47,19 @@ module.exports = withPiCodemodeExpo(getDefaultConfig(__dirname));
 ```
 
 This redirects only Pi Durable's `portable` identifier import to Pi's public `declarations` entry, which exports the same identifier function without a VM launcher. It composes an existing resolver and leaves other imports unchanged. Do not import the Metro helper from application code. Pi Durable/typebox also require standard `TextEncoder`/`TextDecoder`; the app must provide these APIs if its runtime does not.
+
+For a workspace-linked copy of Pi Durable outside `node_modules`, supply its absolute
+package directory (Pi Durable 1.3.0):
+
+```js
+module.exports = withPiCodemodeExpo(getDefaultConfig(__dirname), {
+  durableRoots: [require('node:path').resolve(__dirname, '../pi-durable')],
+});
+```
+
+Configured roots match directory boundaries and support Windows paths. Only the
+`portable` import from those directories is redirected. The default resolver
+behavior is unchanged when this option is omitted.
 
 Pi Durable owns all journals, SQLite storage, nested tasks, replay policy and store commits. This package adds no persistence layer. `start(code, options)` / `run.deliver(seq, now, id, outcome)` use the Pi 1.3.0 public contract. Deterministic runs use virtual UTC time, mulberry32 seeded randomness, no weak references, ordered result application, and `started`/`idle` call counts. Date locale formatting uses stable UTC strings instead of device locale formatting. Each script gets a fresh runtime.
 
